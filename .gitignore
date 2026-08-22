@@ -17,12 +17,10 @@ __pycache__/
 # =========================
 # Databricks / Spark
 # =========================
-dbfs/
 logs/
 
 # =========================
 # Credenciais / Secrets
 # =========================
-credenciais/
 .env
 .env.*
