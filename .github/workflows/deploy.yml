@@ -1,0 +1,78 @@
+name: Deploy Infra com Bicep + Databricks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout do código
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      # 2. Carregar variáveis do .env
+      - name: Carregar variáveis .env
+        run: |
+          export $(cat .env | xargs)
+          echo "AZURE_CLIENT_ID=$AZURE_CLIENT_ID" >> $GITHUB_ENV
+          echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET" >> $GITHUB_ENV
+          echo "AZURE_TENANT_ID=$AZURE_TENANT_ID" >> $GITHUB_ENV
+          echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "AZURE_RESOURCE_GROUP=$AZURE_RESOURCE_GROUP" >> $GITHUB_ENV
+          echo "AZURE_LOCATION=$AZURE_LOCATION" >> $GITHUB_ENV
+          echo "AZURE_DATABRICKS_HOST=$AZURE_DATABRICKS_HOST" >> $GITHUB_ENV
+          echo "AZURE_DATABRICKS_TOKEN=$AZURE_DATABRICKS_TOKEN" >> $GITHUB_ENV
+
+      # 3. Login no Azure
+      - name: Login no Azure
+        run: |
+          az login \
+            --service-principal \
+            -u $AZURE_CLIENT_ID \
+            -p $AZURE_CLIENT_SECRET \
+            --tenant $AZURE_TENANT_ID
+          az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+      # 4. Deploy via Bicep
+      - name: Deploy Bicep
+        run: |
+          az deployment group create \
+            --resource-group $AZURE_RESOURCE_GROUP \
+            --template-file infra/main.bicep \
+            --parameters infra/parameters/prod.bicepparam
+
+      # 5. Instalar Databricks CLI
+      - name: Instalar Databricks CLI
+        run: pip install databricks-cli
+
+      # 6. Configurar Databricks CLI
+      - name: Configurar Databricks CLI
+        run: |
+          databricks configure --token <<EOF
+          $AZURE_DATABRICKS_HOST
+          $AZURE_DATABRICKS_TOKEN
+          EOF
+
+      # 7. Capturar Cluster ID
+      - name: Capturar Cluster ID
+        id: cluster
+        run: |
+          CLUSTER_ID=$(databricks clusters list | grep RUNNING | awk '{print $1}')
+          echo "cluster_id=$CLUSTER_ID" >> $GITHUB_OUTPUT
+
+      # 8. Instalar driver JDBC BigQuery
+      - name: Instalar driver JDBC BigQuery
+        run: |
+          databricks libraries install \
+            --cluster-id ${{ steps.cluster.outputs.cluster_id }} \
+            --maven-coordinates "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.36.1"
+
+      # 9. Reiniciar cluster
+      - name: Reiniciar cluster
+        run: |
+          databricks clusters restart \
+            --cluster-id ${{ steps.cluster.outputs.cluster_id }}
