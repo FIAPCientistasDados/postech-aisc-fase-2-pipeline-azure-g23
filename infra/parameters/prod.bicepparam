@@ -12,4 +12,4 @@ param bronzeContainer = 'bronze'
 
 // Credenciais e chaves
 param googleApplicationCredentials = '/dbfs/FileStore/credenciais/gcp.json'
-
+param keyVaultName = 'kvfiaptechprod'
