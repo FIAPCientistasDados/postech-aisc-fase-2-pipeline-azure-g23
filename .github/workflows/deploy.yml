@@ -89,8 +89,8 @@ jobs:
       - name: Instalar driver JDBC BigQuery
         run: |
           databricks libraries install \
-            --cluster-id ${{ steps.cluster.outputs.cluster_id }} \
-            --maven-coordinates "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.36.1"
+            --cluster-id "${{ steps.cluster.outputs.cluster_id }}" \
+            --maven-coordinates=com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.36.1
 
       # 9. Reiniciar cluster
       - name: Reiniciar cluster
