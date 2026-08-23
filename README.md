@@ -172,3 +172,10 @@ pip install -r requirements.txt
 
 - **Apresentação executiva:** [`reports/ALFABETIZACAO_Apresentacao_Fase2.pptx`]
 - **Vídeo executivo (5 min):** (https://www.loom.com/share/42f2a8fe7d0c45008f4cf486e4812d7f???????????????)
+
+--- Dados IBGE
+IBGE_BR_ESTADOS = "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
+IBGE_BR_MUNICIPIOS = "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
+
+ANOS = (2024, 2025)
+META_BRASIL = {2023: 54.0, 2024: 60.0, 2025: 64.0}

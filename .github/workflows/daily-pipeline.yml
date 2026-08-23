@@ -1,0 +1,31 @@
+name: Daily Pipeline
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # executa diariamente
+  workflow_dispatch:      # permite executar manualmente
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: |
+          pip install -r requirements.txt
+
+      - name: Executar notebook
+        run: |
+          pip install nbconvert jupyter
+          jupyter nbconvert \
+            --to notebook \
+            --execute jobs/main.ipynb \
+            --output executed.ipynb
