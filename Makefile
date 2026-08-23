@@ -64,11 +64,11 @@ deploy: login rg-create validate
 		--parameters $(PARAMETERS)
 	$(MAKE) kv-role-assign
 
-#kv-role-assign:
-#   az role assignment create \
-#       --role 'Key Vault Secrets Officer' \
-#       --assignee $(SP_APPID) \
-#       --scope '/subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/$(RESOURCE_GROUP)/providers/Microsoft.KeyVault/vaults/$(KEYVAULT_NAME)'
+kv-role-assign:
+    az role assignment create \
+        --role 'Key Vault Secrets Officer' \
+        --assignee $(SP_APPID) \
+        --scope '/subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/$(RESOURCE_GROUP)/providers/Microsoft.KeyVault/vaults/$(KEYVAULT_NAME)'
 
 storage-key: login
 	@az storage account keys list \
