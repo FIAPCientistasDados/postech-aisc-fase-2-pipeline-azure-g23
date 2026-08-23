@@ -1,6 +1,9 @@
 name: Daily Pipeline
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '0 5 * * *'   # executa diariamente
   workflow_dispatch:      # permite executar manualmente
