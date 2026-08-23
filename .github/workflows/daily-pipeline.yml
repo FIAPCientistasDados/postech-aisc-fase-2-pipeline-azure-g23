@@ -44,5 +44,4 @@ jobs:
             --execute jobs/main.ipynb \
             --output executed.ipynb
 
-
-  
+            run: echo "${{ secrets.AZURE_CLIENT_ID != '' }}"
