@@ -186,3 +186,6 @@ Preciso criar uma rotina que dispare esse notebook .ypnb (também tenho o mesmo 
 Estou executando o pipeline "no Azure" de forma automatizada; você está executando localmente pelo VS Code, usando o JSON da Service Account do GCP para acessar o BigQuery.
 
 Teste compartilhando GitHub no Databricks
+
+Seguem as pastas compartilhadas do código no Databricks Azure, só para edição. A codificação segue no GitHub, mas ao salvar no GitHub atualiza aitomaticamente no Azure Databricks.
+
