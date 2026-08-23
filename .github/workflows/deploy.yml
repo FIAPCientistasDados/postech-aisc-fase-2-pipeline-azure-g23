@@ -1,9 +1,10 @@
 name: Deploy Infra com Bicep + Databricks
 
 on:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
+  workflow_dispatch:      # permite executar manualmente
 
 env:
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
