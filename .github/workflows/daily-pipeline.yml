@@ -88,7 +88,7 @@ jobs:
           jupyter nbconvert \
             --to notebook \
             --execute jobs/main.ipynb \
-            --output executed.ipynb
+            --output jobs/executed.ipynb
 
       # Opcional: salva notebook executado como artefato
       - name: Salvar notebook executado

@@ -179,3 +179,10 @@ IBGE_BR_MUNICIPIOS = "https://servicodados.ibge.gov.br/api/v1/localidades/munici
 
 ANOS = (2024, 2025)
 META_BRASIL = {2023: 54.0, 2024: 60.0, 2025: 64.0}
+
+Dado o código que puxa os dados do Google BigQuery com sucesso para o container do Azure. Código no GitHub https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23/blob/main/jobs/main.ipynb ​‌
+Preciso criar uma rotina que dispare esse notebook .ypnb (também tenho o mesmo código em Python) no Azure para rodar todos os dias 06h00. Qual o melhor jeit, veja que para conexão no Google só tenho o ID da Base de Dados BigQuery e o json "tough-medley".
+
+Estou executando o pipeline "no Azure" de forma automatizada; você está executando localmente pelo VS Code, usando o JSON da Service Account do GCP para acessar o BigQuery.
+
+Teste compartilhando GitHub no Databricks
