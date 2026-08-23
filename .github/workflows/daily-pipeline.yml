@@ -1,28 +1,39 @@
+# Nome do workflow exibido na aba Actions
 name: Daily Pipeline
 
+# Gatilhos de execução
 on:
+
+  # Executa quando houver push na branch main
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 5 * * *'   # executa diariamente
-  workflow_dispatch:      # permite executar manualmente
 
+  # Executa diariamente às 05:00 UTC
+  schedule:
+    - cron: '0 5 * * *'
+
+  # Permite executar manualmente pelo botão "Run workflow"
+  workflow_dispatch:
+
+# Variáveis vindas dos GitHub Secrets
 env:
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
   AZURE_CONTAINER_BRONZE: ${{ secrets.AZURE_CONTAINER_BRONZE }}
   AZURE_DATABRICKS_HOST: ${{ secrets.AZURE_DATABRICKS_HOST }}
   AZURE_DATABRICKS_TOKEN: ${{ secrets.AZURE_DATABRICKS_TOKEN }}
-  AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}  
+  AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
   AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
   AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
   AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
   RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
   STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
   EVENTHUB_NAMESPACE: ${{ secrets.EVENTHUB_NAMESPACE }}
@@ -30,28 +41,58 @@ env:
   LOG_ANALYTICS_WORKSPACE: ${{ secrets.LOG_ANALYTICS_WORKSPACE }}
 
 jobs:
+
   run-notebook:
+
     runs-on: ubuntu-latest
 
     steps:
+
+      # Baixa o código do repositório
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Instala Python
       - name: Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
+      # Apenas para diagnóstico (pode remover depois)
+      - name: Verificar Python
+        run: |
+          python --version
+          pip --version
+
+      # Verifica se os secrets estão disponíveis
+      - name: Verificar Secrets
+        run: |
+          echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID != '' }}"
+          echo "AZURE_STORAGE_KEY=${{ secrets.AZURE_STORAGE_KEY != '' }}"
+          echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID != '' }}"
+
+      # Instala dependências do projeto
       - name: Instalar dependências
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Executar notebook
+      # Instala ferramentas Jupyter
+      - name: Instalar Jupyter
         run: |
           pip install nbconvert jupyter
+
+      # Executa o notebook
+      - name: Executar notebook
+        run: |
           jupyter nbconvert \
             --to notebook \
             --execute jobs/main.ipynb \
             --output executed.ipynb
 
-            run: echo "${{ secrets.AZURE_CLIENT_ID != '' }}"
+      # Opcional: salva notebook executado como artefato
+      - name: Salvar notebook executado
+        uses: actions/upload-artifact@v4
+        with:
+          name: notebook-executado
+          path: executed.ipynb
