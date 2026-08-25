@@ -302,5 +302,6 @@ EVENTHUB_NAMESPACE="evh-fiap-techchallenge"
 DATABRICKS_WORKSPACE="dbw-fiap-techchallenge"
 LOG_ANALYTICS_WORKSPACE="law-fiap-techchallenge"
 
+Teste
 
 
