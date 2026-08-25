@@ -304,4 +304,6 @@ LOG_ANALYTICS_WORKSPACE="law-fiap-techchallenge"
 
 Teste
 
+Teste2
+
 
