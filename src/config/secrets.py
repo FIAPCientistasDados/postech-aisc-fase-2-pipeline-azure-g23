@@ -1,12 +1,36 @@
+# =========================
+# Secrets
+# =========================
+
 import os
+
+from pyspark.dbutils import DBUtils
+from pyspark.sql import SparkSession
+
+# =========================
+# Databricks
+# =========================
+
+spark = SparkSession.getActiveSession()
+
+dbutils = DBUtils(spark)
+
+# =========================
+# Key Vault
+# =========================
 
 KEYVAULT_SCOPE = "kvfiaptechprod"
 
+# =========================
+# Função
+# =========================
 
-def get_secret(secret_name: str,
-               env_name: str = None):
+def get_secret(
+    secret_name: str,
+    env_name: str = None
+):
     """
-    Busca primeiro no Secret Scope do Databricks.
+    Busca primeiro no Databricks Secret Scope.
     Caso não encontre, utiliza variável
     de ambiente local.
     """
@@ -21,6 +45,12 @@ def get_secret(secret_name: str,
     except Exception:
 
         if env_name:
-            return os.getenv(env_name)
+
+            value = os.getenv(
+                env_name
+            )
+
+            if value:
+                return value
 
         return None
