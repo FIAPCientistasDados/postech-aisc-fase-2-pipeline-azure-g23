@@ -33,7 +33,7 @@ help:
 login:
 	az login \
 		--service-principal \
-		-u $(AZURE_CLIENT_ID) \
+		-u $(AZURE-CLIENT-ID) \
 		-p $(AZURE_CLIENT_SECRET) \
 		--tenant $(AZURE_TENANT_ID)
 

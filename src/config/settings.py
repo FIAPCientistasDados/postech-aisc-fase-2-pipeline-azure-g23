@@ -1,9 +1,36 @@
-# settings.py
+from src.config.secrets import get_secret
 
-from dotenv import load_dotenv
-import os
+AZURE_CLIENT_ID = get_secret(
+    "AZURE-CLIENT-ID",
+    "AZURE_CLIENT_ID"
+)
 
-load_dotenv()
+AZURE_CLIENT_SECRET = get_secret(
+    "AZURE-CLIENT-SECRET",
+    "AZURE_CLIENT_SECRET"
+)
 
-STORAGE_ACCOUNT = os.getenv('STORAGE_ACCOUNT')
-CONTAINER = os.getenv('CONTAINER')
+AZURE_STORAGE_ACCOUNT = get_secret(
+    "AZURE-STORAGE-ACCOUNT",
+    "AZURE_STORAGE_ACCOUNT"
+)
+
+AZURE_STORAGE_KEY = get_secret(
+    "AZURE-STORAGE-KEY",
+    "AZURE_STORAGE_KEY"
+)
+
+BRONZE_CONTAINER = get_secret(
+    "AZURE-CONTAINER-BRONZE",
+    "AZURE_CONTAINER_BRONZE"
+)
+
+SILVER_CONTAINER = get_secret(
+    "AZURE-CONTAINER-SILVER",
+    "AZURE_CONTAINER_SILVER"
+)
+
+GOLD_CONTAINER = get_secret(
+    "AZURE-CONTAINER-GOLD",
+    "AZURE_CONTAINER_GOLD"
+)
