@@ -4,22 +4,40 @@
 
 import os
 
-from pyspark.dbutils import DBUtils
-from pyspark.sql import SparkSession
-
 # =========================
-# Databricks
-# =========================
-
-spark = SparkSession.getActiveSession()
-
-dbutils = DBUtils(spark)
-
-# =========================
-# Key Vault
+# Configuração
 # =========================
 
 KEYVAULT_SCOPE = "kvfiaptechprod"
+
+# =========================
+# Inicialização Databricks
+# =========================
+
+dbutils = None
+
+try:
+
+    from pyspark.sql import SparkSession
+    from pyspark.dbutils import DBUtils
+
+    spark = SparkSession.getActiveSession()
+
+    if spark is not None:
+
+        dbutils = DBUtils(spark)
+
+        print(
+            "✅ Databricks detectado. "
+            "Secret Scope habilitado."
+        )
+
+except Exception:
+
+    print(
+        "⚠️ Ambiente local detectado. "
+        "Utilizando variáveis de ambiente."
+    )
 
 # =========================
 # Função
@@ -31,26 +49,44 @@ def get_secret(
 ):
     """
     Busca primeiro no Databricks Secret Scope.
-    Caso não encontre, utiliza variável
-    de ambiente local.
+
+    Caso não encontre ou esteja em ambiente local,
+    utiliza variável de ambiente.
     """
 
-    try:
+    # -------------------------
+    # Databricks Secret Scope
+    # -------------------------
 
-        return dbutils.secrets.get(
-            scope=KEYVAULT_SCOPE,
-            key=secret_name
-        )
+    if dbutils is not None:
 
-    except Exception:
+        try:
 
-        if env_name:
-
-            value = os.getenv(
-                env_name
+            return dbutils.secrets.get(
+                scope=KEYVAULT_SCOPE,
+                key=secret_name
             )
 
-            if value:
-                return value
+        except Exception:
 
-        return None
+            pass
+
+    # -------------------------
+    # Variável de ambiente
+    # -------------------------
+
+    if env_name:
+
+        value = os.getenv(
+            env_name
+        )
+
+        if value:
+
+            return value
+
+    # -------------------------
+    # Não encontrado
+    # -------------------------
+
+    return None
