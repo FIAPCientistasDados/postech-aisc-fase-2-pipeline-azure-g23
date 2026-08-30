@@ -22,7 +22,7 @@ A arquitetura segue boas práticas de Data Lakehouse, garantindo escalabilidade,
 🔎 Visão Geral
 BigQuery (Fonte de Dados)
 
-Dados públicos e institucionais são consultados diretamente no BigQuery.
+Dados públicos e institucionais (INEP, IBGE) são consultados diretamente no BigQuery.
 
 Exportação realizada em formato Parquet para otimizar leitura e compressão.
 
