@@ -1,309 +1,44 @@
-#### 🚀 Tech Challenge FIAP - Fase 2
-
-Metodologia: PIPELINE / ARQUITETURA MEDALHÃO
-
-🧑‍🤝‍🧑 **Integrantes do Grupo 23**:
-
- ✅ Célia Maria Tomitsuka - RM374490
-
- ✅ Nelson da Silva Paz - RM374983
-
- ✅ Nelson Toshikazu Yamamoto - RM374494
-
+# Alfabetização Brasil — Pipeline de Dados (Camada Gold)
+Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, com **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em cada etapa.
+> Objetivo de negócio: monitorar o cumprimento das metas de alfabetização dos municípios brasileiros entre **2023 e 2024**, identificando onde o Brasil avançou e onde ainda está aquém.
 ---
-
-📊 Projeto de Ingestão e Pipeline de Dados — FIAP Cientistas de Dados
-🎯 Objetivo
-Este projeto tem como finalidade construir um pipeline de ingestão batch que exporta dados do BigQuery para o Azure Blob Storage, organizando-os em camadas (bronze, silver e gold) e permitindo que sejam processados posteriormente no Databricks.
-
-A arquitetura segue boas práticas de Data Lakehouse, garantindo escalabilidade, versionamento e governança dos dados.
-
-🏗️ Arquitetura
-🔎 Visão Geral
-BigQuery (Fonte de Dados)
-
-Dados públicos e institucionais (INEP, IBGE) são consultados diretamente no BigQuery.
-
-Exportação realizada em formato Parquet para otimizar leitura e compressão.
-
-Azure Blob Storage (Data Lake)
-
-Camada Bronze: dados brutos exportados do BigQuery.
-
-Camada Silver: dados tratados e normalizados no Databricks.
-
-Camada Gold: dados prontos para consumo analítico e dashboards.
-
-Databricks (Processamento)
-
-Notebooks versionados no Repos (integrados ao GitHub).
-
-Transformações PySpark/Pandas para limpeza e enriquecimento dos dados.
-
-Uso do Auto Loader para ingestão contínua de novos arquivos.
-
-GitHub Actions (Orquestração)
-
-Automatiza a execução do pipeline de ingestão.
-
-Configurado para rodar a cada 1 hora, garantindo atualização periódica dos dados.
-
-⚙️ Infraestrutura com Bicep
-A infraestrutura é provisionada via Bicep, linguagem declarativa nativa do Azure para IaC (Infrastructure as Code).
-
-🔎 Recursos criados
-Storage Account
-
-Containers: bronze, silver, gold.
-
-Configuração de chaves de acesso e integração com Databricks.
-
-Databricks Workspace
-
-Cluster configurado para processamento distribuído.
-
-Integração com GitHub Repos.
-
-Key Vault
-
-Armazena credenciais sensíveis (BigQuery Service Account, Storage Keys).
-
-Automation/Jobs
-
-Orquestração do pipeline via GitHub Actions ou Azure Data Factory.
-
-✅ Exemplo de trecho Bicep
-bicep
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: 'stfiapoin4ci2kb4w7c'
-  location: resourceGroup().location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-}
-
-resource bronzeContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
-  name: '${storageAccount.name}/default/bronze'
-  properties: {
-    publicAccess: 'None'
-  }
-}
-🚀 Fluxo de Dados
-Ingestão
-
-Script Python exporta tabelas do BigQuery → Blob (camada bronze).
-
-Nome dos arquivos versionado com sufixo de data (AAA-MM-DD_tabela.parquet).
-
-Transformação
-
-Databricks lê os Parquets da bronze.
-
-Aplica limpeza, normalização e enriquecimento.
-
-Grava resultados na camada silver.
-
-Consumo
-
-Dados gold disponíveis para dashboards, relatórios e análises avançadas.
-
-📌 Conclusão
-Este projeto demonstra uma arquitetura moderna de Data Lakehouse integrada entre Google BigQuery e Azure Databricks, com Blob Storage como camada de persistência e Bicep para provisionamento de infraestrutura.
-
-A combinação de GitHub Actions e Databricks Jobs garante automação e escalabilidade, permitindo que os dados sejam atualizados continuamente sem intervenção manual.
-
-## Estrutura de pastas no GitHub (CORRIGIR)
-
-tech-challenge/
-├── data/
-│   ├── raw/                                        # Dados originais
-│   └── processed/                                  # Dados processados 
-|__ docs
-|   |__ tech_challenge_fase1
-|        |__ 1IAST - Fase 1 - Tech Challenge1.pdf   # Arquivo PDF
-├── notebooks/
-│   ├── 1. Entendimento do negócio.ipynb            # Entendimento do negócio
-|   ├── 2. Definição da Target.ipynb                # Target
-|   ├── 3. Análise_Exploratória_dos_Dados.ipynb     # EDA
-|   ├── 4. Modelo preditivo.ipynb                   # Modelo preditivo
-├── reports/
-│   ├── NPS_Apresentacao_Fase1.pptx                 # Apresentação executiva
-│   └── Video_link_aprresentacao.md                 # Apresentação executiva
-├── src/
-├── README.md
-└── environment.yml
-
-
-## Como Reproduzir os resultados
-
-### 1. Clone o repositório
-
-git clone git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
-cd postech-aisc-fase-2-pipeline-azure-g23
-
-### 2. No PowerShell, crie e ative o ambiente virtual
-
-conda env create -f environment.yml
-
-# Ativar o ambiente
-
-conda activate fase2
-
+### Arquitetura```mermaidflowchart LR    subgraph SILVER["Camada Silver (Delta)"]        S1["silver.indicador_municipio"]        S2["silver.meta_municipio"]        S3["silver.dim_ibge_municipios"]    end
+    subgraph GOLD["Camada Gold (Delta)"]        F["gold.fato_alfabetizacao_municipio"]        V1["gold.visao_uf"]        V2["gold.visao_brasil"]        V3["gold.consolidacao_validacao"]    end
+    S1 --> F    S2 --> F    S3 --> F    F --> V1    F --> V2    V1 --> V3    V2 --> V3```
+**Camada Silver (entrada):** dados já tratados e padronizados por município.**Camada Gold (saída):** dados consolidados, particionados e otimizados para consumo analítico.
 ---
-
-Ou com o Python:
-git clone git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
-cd postech-aisc-fase-2-pipeline-azure-g23
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-
+### Fluxo de Processamento```mermaidflowchart TD    A["Leitura das tabelas Silver"] --> B["Transformações e cálculo de indicadores"]    B --> C["Data Quality: nulos e duplicados na chave"]    C --> D{"Chave íntegra?"}    D -->|"Sim"| E["Gravação via CTAS em Delta"]    D -->|"Não"| H["Registro de falha em monitoring.dq_results"]    E --> F["OPTIMIZE + ZORDER BY"]    F --> G["Validação final e leitura"]    H --> B```
+Cada notebook segue o padrão: **leitura → agregação → DQ → CTAS → ZORDER → validação**.
 ---
-
-### 3. Suba o projeto e execute o notebook com o código de ingestao
-
-1. make deploy
-2. main.ipynb
-
+### Tabelas Geradas
+| Tabela | Granularidade | Registros | Papel ||--------|---------------|-----------|-------|| `gold.fato_alfabetizacao_municipio` | `(ano, id_municipio, rede)` | 10.704 | Base detalhada: resultado × meta por município || `gold.visao_uf` | `(ano, estado_sigla, rede)` | 50 | Comparativo entre estados || `gold.visao_brasil` | `(ano, rede)` | 2 | Painel executivo nacional (2023 e 2024) |
+### Estrutura dos Notebooks
+| Notebook | Saída | Tipo ||----------|-------|------|| `01_gold_fato_alfabetizacao_municipio` | `gold.fato_alfabetizacao_municipio` | Gravação (CTAS) || `02_gold_visao_uf` | `gold.visao_uf` | Gravação (CTAS) || `03_gold_visao_brasil` | `gold.visao_brasil` | Gravação (CTAS) || `04_gold_consolidacao_validacao` | — | Somente leitura / validação |
 ---
-
-## Apresentação executiva (material e link)
-
-- **Apresentação executiva:** [`reports/ALFABETIZACAO_Apresentacao_Fase2.pptx`]
-- **Vídeo executivo (5 min):** (https://www.loom.com/share/42f2a8fe7d0c45008f4cf486e4812d7f???????????????)
-
---- Dados IBGE
-IBGE_BR_ESTADOS = "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
-IBGE_BR_MUNICIPIOS = "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
-BASE_DADOS_INEP = "https://basedosdados.org/dataset/073a39d4-89cf-4068-b1e8-34ed0d9c0b72?table=e1de7a6a-5038-4e81-89f0-a15f2cc12c9b"
-
-ANOS = (2024, 2025)
-META_BRASIL = {2023: 54.0, 2024: 60.0, 2025: 64.0}
-
-Dado o código que puxa os dados do Google BigQuery com sucesso para o container do Azure. Código no GitHub https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23/blob/main/jobs/main.ipynb ​‌
-Preciso criar uma rotina que dispare esse notebook .ypnb (também tenho o mesmo código em Python) no Azure para rodar todos os dias 06h00. Qual o melhor jeit, veja que para conexão no Google só tenho o ID da Base de Dados BigQuery e o json "tough-medley".
-
-Estou executando o pipeline "no Azure" de forma automatizada; você está executando localmente pelo VS Code, usando o JSON da Service Account do GCP para acessar o BigQuery.
-
-Teste compartilhando GitHub no Databricks
-
-Seguem as pastas compartilhadas do código no Databricks Azure, só para edição. A codificação segue no GitHub, mas ao salvar no GitHub atualiza aitomaticamente no Azure Databricks.
-
-O que esse notebook faz
-Usa Parquet em vez de CSV (mais eficiente e otimizado para leitura em Big Data).
-
-Mostra o df.head() em cada lote para você visualizar os dados simulados diretamente no notebook.
-
-Funciona tanto localmente (via .env) quanto em Databricks (via Key Vault).
-
-Grava os dados no container bronze, organizados em partições por data/hora.
-
-Simula streaming contínuo com lotes de dados chegando em intervalos regulares.
-
-👉 Agora você tem dados simulados chegando no bronze em formato Parquet e consegue inspecionar cada lote no notebook.
-
-A diferença entre os diretórios simulado e streaming no notebook é conceitual:
-
-📂 inep_alunos_simulado
-
-Representa um lote único de dados gerados de forma estática.
-
-É como se fosse uma carga inicial ou um batch de teste.
-
-Útil para validar o pipeline, checar schema, testar ingestão e garantir que o formato (Parquet) está correto.
-
-Normalmente usado como “snapshot” de dados fictícios.
-
-📂 inep_alunos_streaming
-
-Representa dados chegando em tempo contínuo, em pequenos lotes.
-
-Cada execução do loop gera um novo arquivo particionado por data/hora (YYYY/MM/DD/HHMMSS).
-
-Simula o comportamento de um fluxo real de eventos, como se viessem de um Event Hub ou Kafka.
-
-Útil para testar cenários de ingestão incremental, monitoramento e consumo em tempo real.
-
-👉 Em resumo:
-
-Simulado = carga única, estática, para teste inicial.
-
-Streaming = múltiplos lotes em sequência, simulando fluxo contínuo de dados.
-
-Isso te dá flexibilidade: você pode usar o simulado para validar o pipeline e o streaming para testar como o sistema reage a dados chegando em tempo real.
-
-
-1 - Entrar no Portal Azure com o RM da Fiap e senha da Microsoft (igual à do Teams), talvez precisa que o celular tenha o app Microsoft Authenticator instalado.
-https://portal.azure.com/
-
-2- Baixar o projeto do GitHub 
-> git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
-
-3 - Utilizar o VSCode com WSL Ubuntu preferencialmente
-
-4 - Abrir um ambiente virtual VENV
-4.1 -  criar uma VENV
-> python3.13 -m venv venv
-
-4.2 - ativar a VENV
-> venv\Scripts\activate.bat
-
-4.3 - instalar o requirements.txt
-
-5 - Dentro da pasta do projeto "postech-aisc-fase-2-pipeline-azure-g23" rodar com
-> make deploy 
-
-# 6 - Depois, com a ajuda do CoPilot procure todas as variáveis necessárias do ENV abaixo.
-
-# =========================
-# GOOGLE
-# =========================
-GCP_PROJECT_ID="????????????"
-GOOGLE_APPLICATION_CREDENTIALS=???????????????????????.json
-# =========================
-# AZURE
-# =========================
-AZURE_STORAGE_ACCOUNT="stfiapoin4ci2kb4w7c" 
-# AZURE-STORAGE-ACCOUNT
-AZURE_STORAGE_CONTAINER="bronze"
-
-#KEY1
-AZURE_STORAGE_KEY="????????????????????????"
-AZURE_STORAGE_CONNECTION = "??????????????????????????????????????????????????????????"
-
-# 
-AZURE_TENANT_ID="??????????????????????"
-AZURE-CLIENT-ID="?????????????????????????"
-AZURE_CLIENT_SECRET="??????????????????????????????"
-AZURE_SUBSCRIPTION_ID="?????????????????????"
-
-AZURE_RESOURCE_GROUP=rg-fiap-techchallenge-prod
-AZURE_LOCATION=eastus
-
-# =========================
-# Databricks
-# =========================
-AZURE_DATABRICKS_HOST=??????????????
-AZURE_DATABRICKS_TOKEN="????????????????"
-# Caminho do job Spark (Notebook ou script Python)
-SPARK_JOB=/Repos/fiap-techchallenge/jobs/main.py
-# Arquivo de logs
-SPARK_LOG=logs/spark_output.log
-# Containers
-AZURE_CONTAINER_BRONZE=bronze
-AZURE_CONTAINER_SILVER=silver
-AZURE_CONTAINER_GOLD=gold
-AZURE_KEYVAULT_NAME=kvfiaptechprod
-
-RESOURCE_GROUP="rg-fiap-techchallenge-prod"
-STORAGE_ACCOUNT="?????????"
-EVENTHUB_NAMESPACE="evh-fiap-techchallenge"
-DATABRICKS_WORKSPACE="dbw-fiap-techchallenge"
-LOG_ANALYTICS_WORKSPACE="law-fiap-techchallenge"
-
-Teste
-
-Teste2
-
-
+### Dicionário de Dados
+#### `gold.fato_alfabetizacao_municipio`
+| Coluna | Descrição ||--------|-----------|| `ano` | Ano de referência (2023, 2024) || `id_municipio` | Código IBGE do município || `estado_sigla` | UF (AC, AL, AM, ...) || `rede` | Código da rede de ensino || `rede_nome` | Nome da rede (ex.: Municipal) || `resultado` | Taxa de alfabetização observada || `meta` | Meta de alfabetização definida (NULL em 2023) || `folga_pp` | Diferença em pontos percentuais (resultado − meta) || `status_meta` | `ATINGIU`, `NAO_ATINGIU` ou `SEM_META` || `ingested_at`, `source`, `version` | Rastreabilidade |
+#### `gold.visao_uf` e `gold.visao_brasil`
+| Coluna | Descrição ||--------|-----------|| `total_municipios` | Total de registros no grupo || `municipios_distintos` | Municípios únicos (apenas visão Brasil) || `taxa_media` | Média da taxa de alfabetização || `meta_media` | Média das metas || `pct_atingiram_meta` | % de municípios que atingiram a meta || `municipios_atingiram` / `municipios_sem_meta` | Contagens absolutas |
+#### Relacionamento entre tabelas```mermaiderDiagram    FATO ||--o{ VISAO_UF : "agrega por (ano, UF, rede)"    FATO ||--o{ VISAO_BRASIL : "agrega por (ano, rede)"    FATO {        int ano        int id_municipio        string estado_sigla        string rede_nome        double resultado        double meta        string status_meta    }    VISAO_UF {        int ano        string estado_sigla        string rede_nome        double taxa_media        double meta_media        double pct_atingiram_meta    }    VISAO_BRASIL {        int ano        string rede_nome        int total_municipios        double taxa_media        double pct_atingiram_meta    }```
+---
+### Qualidade de Dados
+Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução registra o resultado em `monitoring.dq_results` para auditoria.
+| Tabela | Chave composta | Nulos | Duplicados ||--------|----------------|-------|------------|| Fato | `(ano, id_municipio, rede)` | 0 | 0 || Visão UF | `(ano, estado_sigla, rede)` | 0 | 0 || Visão Brasil | `(ano, rede)` | 0 | 0 |```mermaidflowchart LR    subgraph DQ["monitoring.dq_results"]        R1["completude_chave"]        R2["unicidade_chave_composta"]    end    FATO --> R1    FATO --> R2    VISAO_UF --> R1    VISAO_UF --> R2    VISAO_BRASIL --> R1    VISAO_BRASIL --> R2```
+---
+### O que os números contam (análise)
+#### Brasil: evolução 2023 → 2024
+- Taxa média nacional subiu de **60.48** para **63.04** (+2,56 p.p.).- Em 2024, **5.232 municípios** tinham meta definida e **2.788 atingiram** — **52,09%** de cumprimento.- Isso significa que **47,9% dos municípios ficaram abaixo da meta** em 2024.```mermaidpie showData    title Atingimento de meta — Brasil 2024    "Atingiram a meta (52.09%)" : 52.09    "Abaixo da meta (47.91%)" : 47.91```
+#### Disparidade regional
+- Destaques positivos: **CE (91,3%)** e **GO (80,0%)** de atingimento.- A variação entre estados mostra que o desafio é **regional e local**, não nacional — sinalizando onde priorizar política pública.
+#### 2023 como linha de base
+- Sem meta definida naquele ano, serve como referência histórica para medir a evolução a partir de 2024.
+---
+### Padrões Técnicos
+- **Formato:** Delta Lake, `PARTITIONED BY (ano)` + `OPTIMIZE ... ZORDER BY`.- **Gravação:** CTAS (`CREATE OR REPLACE TABLE ... AS SELECT`) — compatível com serverless.- **Rastreabilidade:** colunas `ingested_at`, `source`, `version` em todas as tabelas.- **DQ:** `monitoring.dq_results` registra regra, status, registros verificados e falhas por execução.
+---
+### ▶Como Executar
+1. Garanta as tabelas Silver (`indicador_municipio`, `meta_municipio`, `dim_ibge_municipios`).2. Rode os notebooks em ordem: `01` → `02` → `03`.3. Opcional: `04` para consolidar e validar o conjunto final.
+---
+### Próximos Passos Sugeridos
+- Investigar os municípios abaixo da meta em 2024 (ranking por UF e município).- Acompanhar a evolução 2024 → 2025 para medir o ritmo de avanço.- Cruzar com variáveis socioeconômicas (IDH, renda) para entender os fatores do não cumprimento.- Evoluir para uma camada de visualização (Power BI / Databricks SQL Dashboard).
