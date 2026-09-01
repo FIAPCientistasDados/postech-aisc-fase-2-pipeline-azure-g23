@@ -24,7 +24,49 @@ Este projeto integra dados do INEP, IBGE e metas educacionais para monitorar a e
 
 ---
 
-### 3 - Como Executar
+### 3 - Tecnologias Utilizadas
+
+| Tecnologia | Finalidade |
+|------------|------------|
+| Azure Data Factory | Orquestração dos pipelines de ingestão |
+| Azure Data Lake Storage Gen2 | Armazenamento das camadas Bronze, Silver e Gold |
+| Azure Databricks | Processamento distribuído dos dados |
+| Delta Lake | Armazenamento transacional e otimização analítica |
+| Azure Event Hub | Simulação de ingestão streaming |
+| Azure Key Vault | Gerenciamento
+
+---
+
+### 4 - Decisões Arquiteturais
+
+#### Batch x Streaming
+
+A ingestão batch foi utilizada para dados históricos do INEP e IBGE, enquanto o streaming foi adotado para simular atualizações contínuas de indicadores educacionais.
+
+#### Data Lake x Data Warehouse
+
+A escolha do Data Lake permitiu armazenar dados brutos e processados com maior flexibilidade e menor custo operacional.
+
+### Custo x Performance
+
+A utilização de Delta Lake, particionamento e ZORDER permitiu equilibrar desempenho analítico e consumo de recursos computacionais.
+
+---
+
+### 5 - Aplicações em Inteligência Artificial
+
+A camada Gold foi estruturada para servir como base para futuras aplicações de IA e Ciência de Dados, tais como:
+
+- Predição da taxa de alfabetização por município.
+- Identificação de municípios com maior risco de não atingir metas.
+- Clusterização de municípios por perfil educacional.
+- Modelagem de desigualdades regionais.
+- Forecast da evolução dos indicadores até 2030.
+- Apoio à formulação de políticas públicas baseadas em dados.
+
+---
+
+### 6 - Como Executar
 
 ---
 3.1 - Clonar repositório
@@ -50,7 +92,7 @@ pip install -r requirements.txt
 ---
 
 ## Alfabetização Brasil — Pipeline de Dados
-### 4 - Camada Bronze
+### 7 - Camada Bronze
 
 A camada **Bronze** foi responsável pela ingestão e armazenamento dos dados brutos provenientes das fontes externas, preservando sua estrutura original para garantir rastreabilidade e reprocessamento quando necessário.
 
@@ -73,7 +115,7 @@ Além da ingestão batch dos dados históricos do INEP e IBGE, a solução simul
 
 ---
 
-### 5 - Validar conexão (camada Gold)
+### 8 - Validar conexão (camada Gold)
 python src/ingestion/test_connection.py
 
 #### Alfabetização Brasil — Pipeline de Dados (Camada Gold)
@@ -135,7 +177,48 @@ Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução regi
 - Investigar os municípios abaixo da meta em 2024 (ranking por UF e município).- Acompanhar a evolução 2024 → 2025 para medir o ritmo de avanço.- Cruzar com variáveis socioeconômicas (IDH, renda) para entender os fatores do não cumprimento.- Evoluir para uma camada de visualização (Power BI / Databricks SQL Dashboard).
 
 --- 
-### 6 - Estrutura das pastas do repositório
+
+### 9 - Monitoramento e Otimização de Custos (FinOps)
+
+A solução foi projetada para garantir eficiência operacional, observabilidade e otimização do consumo de recursos em nuvem, seguindo boas práticas de FinOps e Governança de Dados.
+
+#### Otimização de Custos (FinOps)
+
+As seguintes estratégias foram adotadas para reduzir custos de armazenamento e processamento:
+
+- Utilização do formato Delta Lake, que proporciona melhor desempenho de leitura e gravação em comparação a formatos tradicionais.
+
+- Particionamento por ano, reduzindo o volume de dados lidos em consultas analíticas.
+
+- Uso de OPTIMIZE e ZORDER BY, melhorando a performance das consultas por meio da organização física dos dados.
+
+- Processamento sob demanda no Azure Databricks, evitando consumo desnecessário de recursos computacionais.
+
+- Separação das camadas Bronze, Silver e Gold, permitindo reutilização dos dados já processados e reduzindo reprocessamentos.
+
+- Provisionamento automatizado da infraestrutura utilizando Azure Bicep, garantindo padronização e evitando desperdício de recursos.
+
+---
+
+### 10 - Monitoramento e Observabilidade
+
+Para garantir a confiabilidade da solução, foram implementados mecanismos de monitoramento e controle da qualidade dos dados:
+
+- Registro das execuções e resultados das validações de qualidade em tabelas de auditoria.
+
+- Verificação automática de integridade, completude e unicidade das chaves de negócio.
+
+- Interrupção controlada do pipeline em caso de falhas críticas de qualidade de dados.
+
+- Rastreabilidade completa por meio das colunas de auditoria (ingested_at, source e version).
+
+- Integração com recursos de monitoramento da plataforma Azure para acompanhamento das execuções e identificação de falhas operacionais.
+
+- Governança centralizada utilizando Unity Catalog e gerenciamento seguro de credenciais por meio do Azure Key Vault.
+
+---
+
+### 11 - Estrutura das pastas do repositório
 
 | Caminho | Descrição |
 |----------|------------|
@@ -194,3 +277,19 @@ Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução regi
 | `jobs/tmp/` | Área temporária utilizada durante a execução dos jobs. |
 
 ---
+
+### 12 - Dicionário de dados
+
+Localizada na pasta: docs/Dicionario_dados_alfabetizacao_fase_2.md
+
+---
+
+### 13 - Conclusão
+
+A solução implementa uma arquitetura moderna de dados em Azure baseada no padrão Medalhão, integrando dados educacionais e territoriais por meio de pipelines Batch e Streaming.
+
+O projeto entrega uma base analítica confiável para acompanhamento das metas de alfabetização no Brasil, incorporando práticas de governança, qualidade de dados, monitoramento e otimização de custos.
+
+---
+
+### 14 - Conclusão
