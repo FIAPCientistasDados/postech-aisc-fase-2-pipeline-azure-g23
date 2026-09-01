@@ -10,7 +10,7 @@
 
 ---
 
-### 1-  Contexto
+### 1 -  Contexto
 
 A alfabetização infantil é um dos principais indicadores de desenvolvimento educacional do país. O programa Compromisso Nacional Criança Alfabetizada estabelece metas para que todas as crianças brasileiras estejam alfabetizadas até o final do 2º ano do Ensino Fundamental até 2030.
 
@@ -33,7 +33,11 @@ Este projeto integra dados do INEP, IBGE e metas educacionais para monitorar a e
 | Azure Databricks | Processamento distribuído dos dados |
 | Delta Lake | Armazenamento transacional e otimização analítica |
 | Azure Event Hub | Simulação de ingestão streaming |
-| Azure Key Vault | Gerenciamento
+| Azure Key Vault | Gerenciamento |
+| Azure Log Analytics | Monitoramento e observabilidade |
+| Azure Bicep | Infraestrutura como código |
+| Google BigQuery | Fonte dos dados do INEP |
+| IBGE API | Dados territoriais |
 
 ---
 
@@ -71,21 +75,27 @@ A camada Gold foi estruturada para servir como base para futuras aplicações de
 ---
 3.1 - Clonar repositório
 
+```
 git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
-
----
+```
 
 3.2 - Acessar a pasta do projeto e instalar as bibliotecas
 
+```
 cd postech-aisc-fase-2-pipeline-azure-g23
+```
 
+```
 python -m venv venv
+```
 
+```
 venv\Scripts\activate
+```
 
+```
 pip install -r requirements.txt
-
----
+```
 
 3.3 - Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
 
@@ -115,70 +125,230 @@ Além da ingestão batch dos dados históricos do INEP e IBGE, a solução simul
 
 ---
 
-### 8 - Validar conexão (camada Gold)
+### 8 - Camada Silver
+
+A camada **Silver** é responsável pela limpeza, padronização, integração e enriquecimento dos dados provenientes da camada Bronze. Nesta etapa, os dados brutos são transformados em conjuntos consistentes e confiáveis, preparados para consumo analítico na camada Gold.
+
+As principais atividades realizadas nessa camada incluem:
+
+- Tratamento de valores nulos e inconsistências.
+- Padronização de tipos de dados e nomenclaturas.
+- Normalização das chaves de identificação de estados e municípios.
+- Integração entre os dados do INEP, IBGE e metas de alfabetização.
+- Criação de dimensões geográficas para enriquecimento das análises.
+- Validação de regras de qualidade e integridade dos dados.
+
+#### Notebooks da Camada Silver
+
+| Notebook | Descrição |
+|-----------|------------|
+| `01_silver_indicador_municipio.ipynb` | Consolida e padroniza os indicadores de alfabetização por município. |
+| `02_silver_indicador_uf.ipynb` | Gera indicadores agregados por unidade federativa. |
+| `03_silver_meta_brasil.ipynb` | Processa e consolida as metas nacionais de alfabetização. |
+| `04_silver_meta_uf.ipynb` | Processa e consolida as metas estaduais de alfabetização. |
+| `05_silver_meta_municipio.ipynb` | Processa e padroniza as metas municipais de alfabetização. |
+| `06_silver_alunos.ipynb` | Realiza o tratamento e a preparação dos dados de alunos. |
+| `07_silver_dim_ibge_estados.ipynb` | Cria a dimensão de estados a partir dos dados do IBGE. |
+| `08_silver_dim_ibge_municipios.ipynb` | Cria a dimensão de municípios a partir dos dados do IBGE. |
+
+#### Dados Gerados
+
+A camada Silver disponibiliza os principais conjuntos de dados utilizados pela camada Gold:
+
+- `silver.indicador_municipio`
+- `silver.indicador_uf`
+- `silver.meta_brasil`
+- `silver.meta_uf`
+- `silver.meta_municipio`
+- `silver.dim_ibge_estados`
+- `silver.dim_ibge_municipios`
+
+Esses conjuntos representam uma visão confiável e padronizada das informações educacionais e territoriais, servindo como base para a construção dos indicadores analíticos e dashboards da solução.
+
+---
+
+### 9 - Camada Gold
+
+#### Validar Conexão
+
+```bash
 python src/ingestion/test_connection.py
+```
 
-#### Alfabetização Brasil — Pipeline de Dados (Camada Gold)
-#### Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, com **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em cada etapa.
-> Objetivo de negócio: monitorar o cumprimento das metas de alfabetização dos municípios brasileiros entre **2023 e 2024**, identificando onde o Brasil avançou e onde ainda está aquém.
+Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, garantindo **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em todas as etapas do processamento.
+
+> **Objetivo de negócio:** monitorar o cumprimento das metas de alfabetização dos municípios brasileiros entre **2023 e 2024**, identificando avanços, desafios e oportunidades para direcionamento de políticas públicas.
+
 ---
-#### Arquitetura```mermaidflowchart LR    subgraph SILVER["Camada Silver (Delta)"]        S1["silver.indicador_municipio"]        S2["silver.meta_municipio"]        S3["silver.dim_ibge_municipios"]    end
-    subgraph GOLD["Camada Gold (Delta)"]        F["gold.fato_alfabetizacao_municipio"]        V1["gold.visao_uf"]        V2["gold.visao_brasil"]        V3["gold.consolidacao_validacao"]    end
-    S1 --> F    S2 --> F    S3 --> F    F --> V1    F --> V2    V1 --> V3    V2 --> V3```
-#### **Camada Silver (entrada):** dados já tratados e padronizados por município.**Camada Gold (saída):** dados consolidados, particionados e otimizados para consumo analítico.
+
+### Arquitetura
+
+A camada **Silver** recebe os dados previamente tratados, padronizados e integrados por município. Nessa etapa são consolidadas informações dos indicadores de alfabetização, metas municipais e dimensões geográficas do IBGE.
+
+A partir da camada Silver são construídas as tabelas da camada **Gold**, responsáveis pela disponibilização dos dados analíticos da solução:
+
+- **gold.fato_alfabetizacao_municipio**: base detalhada por município.
+- **gold.visao_uf**: visão consolidada por unidade federativa.
+- **gold.visao_brasil**: visão executiva nacional.
+- **gold.consolidacao_validacao**: validações e conferências finais.
+
+Todos os dados são armazenados em **Delta Lake**, com particionamento e otimizações voltadas para consultas analíticas.
+
 ---
-#### Fluxo de Processamento```mermaidflowchart TD    A["Leitura das tabelas Silver"] --> B["Transformações e cálculo de indicadores"]    B --> C["Data Quality: nulos e duplicados na chave"]    C --> D{"Chave íntegra?"}    D -->|"Sim"| E["Gravação via CTAS em Delta"]    D -->|"Não"| H["Registro de falha em monitoring.dq_results"]    E --> F["OPTIMIZE + ZORDER BY"]    F --> G["Validação final e leitura"]    H --> B```
-Cada notebook segue o padrão: **leitura → agregação → DQ → CTAS → ZORDER → validação**.
+
+### Fluxo de Processamento
+
+Cada notebook segue o seguinte fluxo:
+
+1. Leitura das tabelas da camada Silver.
+2. Transformação e cálculo dos indicadores.
+3. Execução das regras de qualidade de dados.
+4. Gravação das tabelas utilizando CTAS (*Create Table As Select*).
+5. Otimização das tabelas com `OPTIMIZE` e `ZORDER`.
+6. Validação final dos resultados.
+
 ---
-#### Tabelas Geradas
 
-| Tabela | Granularidade | Registros | Papel ||--------|---------------|-----------|-------|| `gold.fato_alfabetizacao_municipio` | `(ano, id_municipio, rede)` | 10.704 | Base detalhada: resultado × meta por município || `gold.visao_uf` | `(ano, estado_sigla, rede)` | 50 | Comparativo entre estados || `gold.visao_brasil` | `(ano, rede)` | 2 | Painel executivo nacional (2023 e 2024) |
+### Tabelas Geradas
 
-#### Estrutura dos Notebooks
+| Tabela | Granularidade | Registros | Papel |
+|---------|---------|---------|---------|
+| `gold.fato_alfabetizacao_municipio` | `(ano, id_municipio, rede)` | 10.704 | Base detalhada de resultado versus meta por município |
+| `gold.visao_uf` | `(ano, estado_sigla, rede)` | 50 | Comparativo entre estados |
+| `gold.visao_brasil` | `(ano, rede)` | 2 | Painel executivo nacional |
 
-| Notebook | Saída | Tipo ||----------|-------|------|| `01_gold_fato_alfabetizacao_municipio` | `gold.fato_alfabetizacao_municipio` | Gravação (CTAS) || `02_gold_visao_uf` | `gold.visao_uf` | Gravação (CTAS) || `03_gold_visao_brasil` | `gold.visao_brasil` | Gravação (CTAS) || `04_gold_consolidacao_validacao` | — | Somente leitura / validação |
 ---
-#### Dicionário de Dados
-#### `gold.fato_alfabetizacao_municipio`
 
-| Coluna | Descrição ||--------|-----------|| `ano` | Ano de referência (2023, 2024) || `id_municipio` | Código IBGE do município || `estado_sigla` | UF (AC, AL, AM, ...) || `rede` | Código da rede de ensino || `rede_nome` | Nome da rede (ex.: Municipal) || `resultado` | Taxa de alfabetização observada || `meta` | Meta de alfabetização definida (NULL em 2023) || `folga_pp` | Diferença em pontos percentuais (resultado − meta) || `status_meta` | `ATINGIU`, `NAO_ATINGIU` ou `SEM_META` || `ingested_at`, `source`, `version` | Rastreabilidade |
-#### `gold.visao_uf` e `gold.visao_brasil`
+### Estrutura dos Notebooks
 
-| Coluna | Descrição ||--------|-----------|| `total_municipios` | Total de registros no grupo || `municipios_distintos` | Municípios únicos (apenas visão Brasil) || `taxa_media` | Média da taxa de alfabetização || `meta_media` | Média das metas || `pct_atingiram_meta` | % de municípios que atingiram a meta || `municipios_atingiram` / `municipios_sem_meta` | Contagens absolutas |
-#### Relacionamento entre tabelas```mermaiderDiagram    FATO ||--o{ VISAO_UF : "agrega por (ano, UF, rede)"    FATO ||--o{ VISAO_BRASIL : "agrega por (ano, rede)"    FATO {        int ano        int id_municipio        string estado_sigla        string rede_nome        double resultado        double meta        string status_meta    }    VISAO_UF {        int ano        string estado_sigla        string rede_nome        double taxa_media        double meta_media        double pct_atingiram_meta    }    VISAO_BRASIL {        int ano        string rede_nome        int total_municipios        double taxa_media        double pct_atingiram_meta    }```
+| Notebook | Saída | Tipo |
+|---------|---------|---------|
+| `01_gold_fato_alfabetizacao_municipio` | `gold.fato_alfabetizacao_municipio` | Gravação (CTAS) |
+| `02_gold_visao_uf` | `gold.visao_uf` | Gravação (CTAS) |
+| `03_gold_visao_brasil` | `gold.visao_brasil` | Gravação (CTAS) |
+| `04_gold_consolidacao_validacao` | — | Leitura e validação |
+
 ---
-#### Qualidade de Dados
 
-Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução registra o resultado em `monitoring.dq_results` para auditoria.
-| Tabela | Chave composta | Nulos | Duplicados ||--------|----------------|-------|------------|| Fato | `(ano, id_municipio, rede)` | 0 | 0 || Visão UF | `(ano, estado_sigla, rede)` | 0 | 0 || Visão Brasil | `(ano, rede)` | 0 | 0 |```mermaidflowchart LR    subgraph DQ["monitoring.dq_results"]        R1["completude_chave"]        R2["unicidade_chave_composta"]    end    FATO --> R1    FATO --> R2    VISAO_UF --> R1    VISAO_UF --> R2    VISAO_BRASIL --> R1    VISAO_BRASIL --> R2```
+### Dicionário de Dados
+
+#### gold.fato_alfabetizacao_municipio
+
+| Coluna | Descrição |
+|---------|---------|
+| `ano` | Ano de referência (2023 e 2024) |
+| `id_municipio` | Código IBGE do município |
+| `estado_sigla` | Unidade Federativa |
+| `rede` | Código da rede de ensino |
+| `rede_nome` | Nome da rede de ensino |
+| `resultado` | Taxa de alfabetização observada |
+| `meta` | Meta de alfabetização definida |
+| `folga_pp` | Diferença entre resultado e meta |
+| `status_meta` | ATINGIU, NAO_ATINGIU ou SEM_META |
+| `ingested_at` | Data de ingestão |
+| `source` | Fonte do dado |
+| `version` | Versão do processamento |
+
+#### gold.visao_uf e gold.visao_brasil
+
+| Coluna | Descrição |
+|---------|---------|
+| `total_municipios` | Total de registros analisados |
+| `municipios_distintos` | Quantidade de municípios distintos |
+| `taxa_media` | Média da taxa de alfabetização |
+| `meta_media` | Média das metas |
+| `pct_atingiram_meta` | Percentual de municípios que atingiram a meta |
+| `municipios_atingiram` | Quantidade de municípios que atingiram a meta |
+| `municipios_sem_meta` | Quantidade de municípios sem meta definida |
+
 ---
-#### O que os números contam (análise)
+
+### Relacionamento entre Tabelas
+
+A tabela `gold.fato_alfabetizacao_municipio` é a principal tabela analítica da solução.
+
+A partir dela são geradas:
+
+- `gold.visao_uf`, agregada por ano, estado e rede de ensino.
+- `gold.visao_brasil`, agregada por ano e rede de ensino.
+
+Essas visões permitem análises em diferentes níveis de granularidade, desde o município até a visão consolidada do país.
+
+---
+
+### Qualidade de Dados
+
+Todas as chaves foram validadas sem ocorrência de nulos ou duplicidades.
+
+Cada execução registra os resultados das validações em `monitoring.dq_results`, garantindo rastreabilidade e auditoria do pipeline.
+
+| Tabela | Chave Composta | Nulos | Duplicados |
+|---------|---------|---------|---------|
+| Fato | `(ano, id_municipio, rede)` | 0 | 0 |
+| Visão UF | `(ano, estado_sigla, rede)` | 0 | 0 |
+| Visão Brasil | `(ano, rede)` | 0 | 0 |
+
+---
+
+### O que os números contam
+
 #### Brasil: evolução 2023 → 2024
 
-- Taxa média nacional subiu de **60.48** para **63.04** (+2,56 p.p.).- Em 2024, **5.232 municípios** tinham meta definida e **2.788 atingiram** — **52,09%** de cumprimento.- Isso significa que **47,9% dos municípios ficaram abaixo da meta** em 2024.```mermaidpie showData    title Atingimento de meta — Brasil 2024    "Atingiram a meta (52.09%)" : 52.09    "Abaixo da meta (47.91%)" : 47.91```
+- A taxa média nacional passou de **60,48%** para **63,04%**, representando crescimento de **2,56 pontos percentuais**.
+- Em 2024, **5.232 municípios** possuíam meta definida.
+- Desses, **2.788 municípios atingiram a meta**, correspondendo a **52,09%** do total.
+- Consequentemente, **47,91% dos municípios ficaram abaixo da meta estabelecida**.
 
-#### Disparidade regional
+#### Disparidade Regional
 
-- Destaques positivos: **CE (91,3%)** e **GO (80,0%)** de atingimento.- A variação entre estados mostra que o desafio é **regional e local**, não nacional — sinalizando onde priorizar política pública.
-#### 2023 como linha de base
+- Destaques positivos de atingimento: **Ceará (91,3%)** e **Goiás (80,0%)**.
+- Os resultados evidenciam diferenças relevantes entre estados, indicando a necessidade de políticas públicas regionalizadas e ações específicas para cada contexto.
 
-- Sem meta definida naquele ano, serve como referência histórica para medir a evolução a partir de 2024.
+#### 2023 como Linha de Base
+
+- Como não havia metas definidas para 2023, o período é utilizado como referência histórica para análise da evolução observada em 2024.
+
 ---
-#### Padrões Técnicos
 
-- **Formato:** Delta Lake, `PARTITIONED BY (ano)` + `OPTIMIZE ... ZORDER BY`.- **Gravação:** CTAS (`CREATE OR REPLACE TABLE ... AS SELECT`) — compatível com serverless.- **Rastreabilidade:** colunas `ingested_at`, `source`, `version` em todas as tabelas.- **DQ:** `monitoring.dq_results` registra regra, status, registros verificados e falhas por execução.
+### Padrões Técnicos
+
+- Armazenamento em **Delta Lake**.
+- Particionamento por ano (`PARTITIONED BY ano`).
+- Otimização de consultas com `OPTIMIZE` e `ZORDER`.
+- Gravação por meio de CTAS (`CREATE OR REPLACE TABLE AS SELECT`).
+- Rastreabilidade através das colunas `ingested_at`, `source` e `version`.
+- Registro de validações e auditoria em `monitoring.dq_results`.
+
 ---
-#### Como Executar
 
-1. Garanta as tabelas Silver (`indicador_municipio`, `meta_municipio`, `dim_ibge_municipios`).2. Rode os notebooks em ordem: `01` → `02` → `03`.3. Opcional: `04` para consolidar e validar o conjunto final.
+### Como Executar
+
+1. Garantir a existência das tabelas Silver:
+   - `indicador_municipio`
+   - `meta_municipio`
+   - `dim_ibge_municipios`
+
+2. Executar os notebooks na seguinte sequência:
+   - `01_gold_fato_alfabetizacao_municipio`
+   - `02_gold_visao_uf`
+   - `03_gold_visao_brasil`
+
+3. Opcionalmente executar:
+   - `04_gold_consolidacao_validacao`
+
 ---
-#### Próximos Passos Sugeridos
 
-- Investigar os municípios abaixo da meta em 2024 (ranking por UF e município).- Acompanhar a evolução 2024 → 2025 para medir o ritmo de avanço.- Cruzar com variáveis socioeconômicas (IDH, renda) para entender os fatores do não cumprimento.- Evoluir para uma camada de visualização (Power BI / Databricks SQL Dashboard).
+### Próximos Passos Sugeridos
 
---- 
+- Investigar os municípios abaixo da meta em 2024.
+- Acompanhar a evolução dos indicadores nos próximos anos.
+- Cruzar os resultados com variáveis socioeconômicas, como IDH, renda e vulnerabilidade social.
+- Disponibilizar dashboards executivos em Power BI ou Databricks SQL.
+- Utilizar a camada Gold como base para modelos preditivos e aplicações de Inteligência Artificial.
 
-### 9 - Monitoramento e Otimização de Custos (FinOps)
+---
+
+### 10 - Monitoramento e Otimização de Custos (FinOps)
 
 A solução foi projetada para garantir eficiência operacional, observabilidade e otimização do consumo de recursos em nuvem, seguindo boas práticas de FinOps e Governança de Dados.
 
@@ -200,7 +370,7 @@ As seguintes estratégias foram adotadas para reduzir custos de armazenamento e 
 
 ---
 
-### 10 - Monitoramento e Observabilidade
+### 11 - Monitoramento e Observabilidade
 
 Para garantir a confiabilidade da solução, foram implementados mecanismos de monitoramento e controle da qualidade dos dados:
 
@@ -218,7 +388,20 @@ Para garantir a confiabilidade da solução, foram implementados mecanismos de m
 
 ---
 
-### 11 - Estrutura das pastas do repositório
+## 12 - Governança de Dados
+
+A solução utiliza práticas de governança para garantir segurança,
+rastreabilidade e controle dos dados processados.
+
+- Azure Key Vault para gerenciamento de segredos.
+- Unity Catalog para catalogação dos ativos de dados.
+- Colunas de auditoria (ingested_at, source e version).
+- Controle de acesso aos recursos provisionados.
+- Versionamento dos dados através do Delta Lake.
+
+---
+
+### 13 - Estrutura das pastas do repositório
 
 | Caminho | Descrição |
 |----------|------------|
@@ -278,25 +461,25 @@ Para garantir a confiabilidade da solução, foram implementados mecanismos de m
 
 ---
 
-### 12 - Dicionário de dados
+### 14 - Dicionário de dados
 
 Localizada na pasta: docs/Dicionario_dados_alfabetizacao_fase_2.md
 
 ---
 
-### 13 - PowerPoint da Apresentação
+### 15 - PowerPoint da Apresentação
 
 Localizada na pasta: docs/Tech Challenge – Fase 2(executivo).pptx
 
 ---
 
-### 14 - Vídeo executivo (até 5 minutos)
+### 16 - Vídeo executivo (até 5 minutos)
 
 Link do vídeo executivo (5 min): https://www.loom.com/share/318459135a80483b8daa9a74f95ff186
 
 ---
 
-### 15 - Conclusão
+### 17 - Conclusão
 
 A solução implementa uma arquitetura moderna de dados em Azure baseada no padrão Medalhão, integrando dados educacionais e territoriais por meio de pipelines Batch e Streaming.
 
