@@ -59,12 +59,17 @@ Nesta etapa foram carregadas três fontes principais de dados:
 | Notebook | Descrição |
 |-----------|------------|
 | `bronze_inep_alfabetizacao.ipynb` | Realiza a extração dos dados de alfabetização disponibilizados pelo INEP através do Google BigQuery. A autenticação é realizada utilizando credenciais de serviço do Google Cloud, permitindo a consulta e exportação dos dados para o Data Lake na camada Bronze. |
-| `bronze_ibge_estados.ipynb` | Responsável pela ingestão dos dados cadastrais dos estados brasileiros disponibilizados pelo IBGE. |
-| `bronze_ibge_municipios.ipynb` | Responsável pela ingestão dos dados cadastrais dos municípios brasileiros disponibilizados pelo IBGE. |
+| `bronze_ibge_estados.ipynb` | Responsável pela ingestão dos dados cadastrais dos estados brasileiros disponibilizados pelo IBGE, utilizados como referência geográfica para integração e enriquecimento dos dados analíticos. |
+| `bronze_ibge_municipios.ipynb` | Responsável pela ingestão dos dados cadastrais dos municípios brasileiros disponibilizados pelo IBGE, compondo a base de referência territorial da solução. |
+| `streaming/producer.ipynb` | Simula a geração de eventos em tempo real no formato JSON, representando atualizações de indicadores educacionais. Os eventos são utilizados para demonstrar o processamento contínuo de dados em uma arquitetura híbrida (Batch + Streaming). |
+| `streaming/config.ipynb` | Centraliza as configurações compartilhadas do pipeline de streaming, incluindo parâmetros de conexão, armazenamento e execução. |
+| `streaming/functions.ipynb` | Contém funções utilitárias utilizadas pelos componentes de streaming para leitura, transformação e gravação dos eventos processados. |
 
 Para a base de alfabetização do **INEP**, os dados foram obtidos diretamente do **Google BigQuery**, utilizando uma **Service Account** do Google Cloud para autenticação. Após a conexão com o BigQuery, os conjuntos de dados foram extraídos e armazenados no Data Lake sem transformações, mantendo a integridade dos dados originais para as etapas subsequentes de tratamento e enriquecimento nas camadas **Silver** e **Gold**.
 
 Os dados do **IBGE** foram ingeridos como tabelas de referência geográfica, servindo de base para a normalização e enriquecimento das informações de estados e municípios ao longo do pipeline analítico.
+
+Além da ingestão batch dos dados históricos do INEP e IBGE, a solução simula eventos em streaming por meio de arquivos JSON processados por pipelines do Azure Databricks.
 
 ---
 
@@ -73,13 +78,19 @@ python src/ingestion/test_connection.py
 
 #### Alfabetização Brasil — Pipeline de Dados (Camada Gold)
 #### Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, com **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em cada etapa.
+
 > Objetivo de negócio: monitorar o cumprimento das metas de alfabetização dos municípios brasileiros entre **2023 e 2024**, identificando onde o Brasil avançou e onde ainda está aquém.
 ---
-#### Arquitetura```mermaidflowchart LR    subgraph SILVER["Camada Silver (Delta)"]        S1["silver.indicador_municipio"]        S2["silver.meta_municipio"]        S3["silver.dim_ibge_municipios"]    end
+#### Arquitetura
+
+```mermaidflowchart LR    subgraph SILVER["Camada Silver (Delta)"]        S1["silver.indicador_municipio"]        S2["silver.meta_municipio"]        S3["silver.dim_ibge_municipios"]    end
     subgraph GOLD["Camada Gold (Delta)"]        F["gold.fato_alfabetizacao_municipio"]        V1["gold.visao_uf"]        V2["gold.visao_brasil"]        V3["gold.consolidacao_validacao"]    end
     S1 --> F    S2 --> F    S3 --> F    F --> V1    F --> V2    V1 --> V3    V2 --> V3```
+
 #### **Camada Silver (entrada):** dados já tratados e padronizados por município.**Camada Gold (saída):** dados consolidados, particionados e otimizados para consumo analítico.
+
 ---
+
 #### Fluxo de Processamento```mermaidflowchart TD    A["Leitura das tabelas Silver"] --> B["Transformações e cálculo de indicadores"]    B --> C["Data Quality: nulos e duplicados na chave"]    C --> D{"Chave íntegra?"}    D -->|"Sim"| E["Gravação via CTAS em Delta"]    D -->|"Não"| H["Registro de falha em monitoring.dq_results"]    E --> F["OPTIMIZE + ZORDER BY"]    F --> G["Validação final e leitura"]    H --> B```
 Cada notebook segue o padrão: **leitura → agregação → DQ → CTAS → ZORDER → validação**.
 ---
