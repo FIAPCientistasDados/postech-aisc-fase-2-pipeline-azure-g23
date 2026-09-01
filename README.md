@@ -1,14 +1,33 @@
-## Postech Tech Challenge | Fase 2:
+## Postech Tech Challenge | Fase 2: 
 
 **Integrantes do Grupo (2IAST 23):**
+
 ✅ Célia Maria Tomitsuka - RM374490
+
 ✅ Nelson da Silva Paz - RM374983
+
 ✅ Nelson Toshikazu Yamamoto - RM374494
 
 ---
 
+# Contexto
+
+A alfabetização infantil é um dos principais indicadores de desenvolvimento educacional do país. O programa Compromisso Nacional Criança Alfabetizada estabelece metas para que todas as crianças brasileiras estejam alfabetizadas até o final do 2º ano do Ensino Fundamental até 2030.
+
+Este projeto integra dados do INEP, IBGE e metas educacionais para monitorar a evolução dos indicadores de alfabetização nos municípios brasileiros, fornecendo uma base confiável para análises, tomada de decisão e formulação de políticas públicas.
+
+---
+
 ▶️ Como Executar
+
+---
+1 - Clonar repositório
+
 git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
+
+---
+
+2 - Acessar a pasta do projeto e instalar as bibliotecas
 
 cd postech-aisc-fase-2-pipeline-azure-g23
 
@@ -18,7 +37,9 @@ venv\Scripts\activate
 
 pip install -r requirements.txt
 
-Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
+---
+
+3 - Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
 
 ---
 
