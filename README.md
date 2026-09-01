@@ -10,7 +10,7 @@
 
 ---
 
-# Contexto
+## 1-  Contexto
 
 A alfabetização infantil é um dos principais indicadores de desenvolvimento educacional do país. O programa Compromisso Nacional Criança Alfabetizada estabelece metas para que todas as crianças brasileiras estejam alfabetizadas até o final do 2º ano do Ensino Fundamental até 2030.
 
@@ -18,16 +18,22 @@ Este projeto integra dados do INEP, IBGE e metas educacionais para monitorar a e
 
 ---
 
-▶️ Como Executar
+## 2 - Arquitetura da Solução
+
+docs/imagens/Arquitetura_do_projeto.png
 
 ---
-1 - Clonar repositório
+
+##▶️ 3 - Como Executar
+
+---
+3.1 - Clonar repositório
 
 git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
 
 ---
 
-2 - Acessar a pasta do projeto e instalar as bibliotecas
+3.2 - Acessar a pasta do projeto e instalar as bibliotecas
 
 cd postech-aisc-fase-2-pipeline-azure-g23
 
@@ -39,7 +45,7 @@ pip install -r requirements.txt
 
 ---
 
-3 - Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
+3.3 - Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
 
 ---
 
@@ -62,7 +68,7 @@ Os dados do **IBGE** foram ingeridos como tabelas de referência geográfica, se
 
 ---
 
-# 1. Validar conexão
+## 4 - Validar conexão
 python src/ingestion/test_connection.py
 
 
@@ -112,7 +118,7 @@ Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução regi
 - Investigar os municípios abaixo da meta em 2024 (ranking por UF e município).- Acompanhar a evolução 2024 → 2025 para medir o ritmo de avanço.- Cruzar com variáveis socioeconômicas (IDH, renda) para entender os fatores do não cumprimento.- Evoluir para uma camada de visualização (Power BI / Databricks SQL Dashboard).
 
 --- 
-### Estrutura das pastas do repositório
+### 5- Estrutura das pastas do repositório
 
 | Caminho | Descrição |
 |----------|------------|
