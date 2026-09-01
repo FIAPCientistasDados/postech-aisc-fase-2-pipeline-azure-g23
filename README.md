@@ -1,11 +1,58 @@
-# Alfabetização Brasil — Pipeline de Dados (Camada Gold)
-Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, com **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em cada etapa.
+## Postech Tech Challenge | Fase 2:
+
+**Integrantes do Grupo (2IAST 23):**
+✅ Célia Maria Tomitsuka - RM374490
+✅ Nelson da Silva Paz - RM374983
+✅ Nelson Toshikazu Yamamoto - RM374494
+
+---
+
+▶️ Como Executar
+git clone https://github.com/FIAPCientistasDados/postech-aisc-fase-2-pipeline-azure-g23
+
+cd postech-aisc-fase-2-pipeline-azure-g23
+
+python -m venv venv
+
+venv\Scripts\activate
+
+pip install -r requirements.txt
+
+Configure o .env com suas credenciais Azure (use .env.Example como base) e rode a pipeline com **make deploy**
+
+---
+
+### Alfabetização Brasil — Pipeline de Dados (Camada Bronze)
+### Camada Bronze
+
+A camada **Bronze** foi responsável pela ingestão e armazenamento dos dados brutos provenientes das fontes externas, preservando sua estrutura original para garantir rastreabilidade e reprocessamento quando necessário.
+
+Nesta etapa foram carregadas três fontes principais de dados:
+
+| Notebook | Descrição |
+|-----------|------------|
+| `bronze_inep_alfabetizacao.ipynb` | Realiza a extração dos dados de alfabetização disponibilizados pelo INEP através do Google BigQuery. A autenticação é realizada utilizando credenciais de serviço do Google Cloud, permitindo a consulta e exportação dos dados para o Data Lake na camada Bronze. |
+| `bronze_ibge_estados.ipynb` | Responsável pela ingestão dos dados cadastrais dos estados brasileiros disponibilizados pelo IBGE. |
+| `bronze_ibge_municipios.ipynb` | Responsável pela ingestão dos dados cadastrais dos municípios brasileiros disponibilizados pelo IBGE. |
+
+Para a base de alfabetização do **INEP**, os dados foram obtidos diretamente do **Google BigQuery**, utilizando uma **Service Account** do Google Cloud para autenticação. Após a conexão com o BigQuery, os conjuntos de dados foram extraídos e armazenados no Data Lake sem transformações, mantendo a integridade dos dados originais para as etapas subsequentes de tratamento e enriquecimento nas camadas **Silver** e **Gold**.
+
+Os dados do **IBGE** foram ingeridos como tabelas de referência geográfica, servindo de base para a normalização e enriquecimento das informações de estados e municípios ao longo do pipeline analítico.
+
+---
+
+# 1. Validar conexão
+python src/ingestion/test_connection.py
+
+
+### Alfabetização Brasil — Pipeline de Dados (Camada Gold)
+### Pipeline de dados em **Databricks + Delta Lake** que consolida indicadores de alfabetização municipal, estadual e nacional, com **qualidade de dados (DQ)**, **rastreabilidade** e **auditoria** em cada etapa.
 > Objetivo de negócio: monitorar o cumprimento das metas de alfabetização dos municípios brasileiros entre **2023 e 2024**, identificando onde o Brasil avançou e onde ainda está aquém.
 ---
 ### Arquitetura```mermaidflowchart LR    subgraph SILVER["Camada Silver (Delta)"]        S1["silver.indicador_municipio"]        S2["silver.meta_municipio"]        S3["silver.dim_ibge_municipios"]    end
     subgraph GOLD["Camada Gold (Delta)"]        F["gold.fato_alfabetizacao_municipio"]        V1["gold.visao_uf"]        V2["gold.visao_brasil"]        V3["gold.consolidacao_validacao"]    end
     S1 --> F    S2 --> F    S3 --> F    F --> V1    F --> V2    V1 --> V3    V2 --> V3```
-**Camada Silver (entrada):** dados já tratados e padronizados por município.**Camada Gold (saída):** dados consolidados, particionados e otimizados para consumo analítico.
+### **Camada Silver (entrada):** dados já tratados e padronizados por município.**Camada Gold (saída):** dados consolidados, particionados e otimizados para consumo analítico.
 ---
 ### Fluxo de Processamento```mermaidflowchart TD    A["Leitura das tabelas Silver"] --> B["Transformações e cálculo de indicadores"]    B --> C["Data Quality: nulos e duplicados na chave"]    C --> D{"Chave íntegra?"}    D -->|"Sim"| E["Gravação via CTAS em Delta"]    D -->|"Não"| H["Registro de falha em monitoring.dq_results"]    E --> F["OPTIMIZE + ZORDER BY"]    F --> G["Validação final e leitura"]    H --> B```
 Cada notebook segue o padrão: **leitura → agregação → DQ → CTAS → ZORDER → validação**.
@@ -42,3 +89,62 @@ Todas as chaves foram validadas sem nulos e sem duplicados. Cada execução regi
 ---
 ### Próximos Passos Sugeridos
 - Investigar os municípios abaixo da meta em 2024 (ranking por UF e município).- Acompanhar a evolução 2024 → 2025 para medir o ritmo de avanço.- Cruzar com variáveis socioeconômicas (IDH, renda) para entender os fatores do não cumprimento.- Evoluir para uma camada de visualização (Power BI / Databricks SQL Dashboard).
+
+--- 
+### Estrutura das pastas do repositório
+
+| Caminho | Descrição |
+|----------|------------|
+| `credenciais/` | Arquivos de autenticação utilizados para acesso aos serviços externos. |
+| `credenciais/tough-medley-xxxxx.json` | Chave de serviço para autenticação. |
+| `datalake/` | Estrutura do Data Lake organizada nas camadas Silver e Gold. |
+| `datalake/silver/` | Camada de refinamento e enriquecimento dos dados. |
+| `datalake/silver/01_silver_indicador_municipio.ipynb` | Processamento dos indicadores por município. |
+| `datalake/silver/02_silver_indicador_uf.ipynb` | Processamento dos indicadores por UF. |
+| `datalake/silver/03_silver_meta_brasil.ipynb` | Consolidação das metas em nível nacional. |
+| `datalake/silver/04_silver_meta_uf.ipynb` | Consolidação das metas por UF. |
+| `datalake/silver/05_silver_meta_municipio.ipynb` | Consolidação das metas por município. |
+| `datalake/silver/06_silver_alunos.ipynb` | Tratamento e preparação dos dados de alunos. |
+| `datalake/silver/07_silver_dim_ibge_estados.ipynb` | Criação da dimensão de estados baseada no IBGE. |
+| `datalake/silver/08_silver_dim_ibge_municipios.ipynb` | Criação da dimensão de municípios baseada no IBGE. |
+| `datalake/gold/` | Camada analítica para consumo dos dados. |
+| `datalake/gold/01_gold_fato_alfabetizacao_municipio.ipynb` | Construção da tabela fato de alfabetização por município. |
+| `datalake/gold/02_gold_visao_uf.ipynb` | Geração da visão analítica por UF. |
+| `datalake/gold/03_gold_visao_brasil.ipynb` | Geração da visão consolidada do Brasil. |
+| `datalake/gold/04_gold_consolidacao_validacao.ipynb` | Consolidação e validação final dos dados. |
+| `dbfs/` | Armazenamento de arquivos do Databricks File System (DBFS). |
+| `tmp/` | Diretório para arquivos temporários. |
+| `tmp/temp.parquet` | Arquivo temporário em formato Parquet. |
+| `.gitkeep` | Arquivo utilizado para manter diretórios vazios versionados no Git. |
+| `docs/` | Documentação do projeto. |
+| `docs/[IAST] - Tech Challenge - Fase 2.pdf` | Documento de especificação do desafio técnico. |
+| `docs/Dicionario_dados_alfabetizacao_fase_2.md` | Dicionário de dados da solução. |
+| `docs/Tech Challenge – Fase 2 (executivo).pptx` | Apresentação executiva do projeto. |
+| `infra/` | Infraestrutura como Código (IaC) utilizando Azure Bicep. |
+| `infra/modules/` | Módulos reutilizáveis para provisionamento dos recursos da arquitetura. |
+| `infra/modules/adf.bicep` | Provisiona o Azure Data Factory. |
+| `infra/modules/bigqueryToBlob.bicep` | Configura integração entre BigQuery e Azure Blob Storage. |
+| `infra/modules/databricks.bicep` | Provisiona o Azure Databricks. |
+| `infra/modules/datafactory.bicep` | Configurações complementares do Azure Data Factory. |
+| `infra/modules/eventhub.bicep` | Provisiona o Azure Event Hub. |
+| `infra/modules/keyvault.bicep` | Provisiona o Azure Key Vault para gerenciamento de segredos. |
+| `infra/modules/loganalytics.bicep` | Provisiona o Log Analytics Workspace. |
+| `infra/modules/monitoring.bicep` | Configura monitoramento e observabilidade da solução. |
+| `infra/modules/storage.bicep` | Provisiona contas e recursos de armazenamento. |
+| `infra/parameters/` | Arquivos de parâmetros para implantação dos recursos. |
+| `infra/parameters/prod.bicepparam` | Parâmetros de implantação para ambiente produtivo. |
+| `infra/databricksPipeline.bicep` | Definição da infraestrutura do pipeline Databricks. |
+| `infra/main.bicep` | Arquivo principal de orquestração da infraestrutura. |
+| `infra/main.json` | Template ARM gerado a partir dos arquivos Bicep. |
+| `jobs/` | Notebooks de ingestão e processamento de dados. |
+| `jobs/bronze_ibge_estados.ipynb` | Ingestão dos dados de estados na camada Bronze. |
+| `jobs/bronze_ibge_municipios.ipynb` | Ingestão dos dados de municípios na camada Bronze. |
+| `jobs/bronze_inep_alfabetizacao.ipynb` | Ingestão dos dados de alfabetização do INEP na camada Bronze. |
+| `jobs/streaming/` | Componentes do pipeline de streaming de dados. |
+| `jobs/streaming/config.ipynb` | Configurações compartilhadas do pipeline de streaming. |
+| `jobs/streaming/functions.ipynb` | Funções utilitárias utilizadas pelos notebooks de streaming. |
+| `jobs/streaming/listar_container.ipynb` | Utilitário para listagem de containers e arquivos. |
+| `jobs/streaming/producer.ipynb` | Simulador/produtor de eventos para ingestão em tempo real. |
+| `jobs/tmp/` | Área temporária utilizada durante a execução dos jobs. |
+
+---
