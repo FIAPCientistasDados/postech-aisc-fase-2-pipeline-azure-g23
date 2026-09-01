@@ -348,6 +348,12 @@ Cada execução registra os resultados das validações em `monitoring.dq_result
 
 ---
 
+#### Imagens das execuções dos jobs da camada Gold
+
+![Arquitetura da pipeline na Azure, com as camadas Bronze, Silver e Gold](docs/imagens/Jobs_e_Pipelines.png)
+![Arquitetura da pipeline na Azure, com as camadas Bronze, Silver e Gold](docs/imagens/Tarefas_camada_Gold.png)
+![Arquitetura da pipeline na Azure, com as camadas Bronze, Silver e Gold](docs/imagens/Execução_do_job_da_camada_Gold.png)
+
 ### 10 - Monitoramento e Otimização de Custos (FinOps)
 
 A solução foi projetada para garantir eficiência operacional, observabilidade e otimização do consumo de recursos em nuvem, seguindo boas práticas de FinOps e Governança de Dados.
