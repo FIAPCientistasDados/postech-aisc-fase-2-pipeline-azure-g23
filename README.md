@@ -284,12 +284,22 @@ Localizada na pasta: docs/Dicionario_dados_alfabetizacao_fase_2.md
 
 ---
 
-### 13 - Conclusão
+### 13 - PowerPoint da Apresentação
+
+Localizada na pasta: docs/Tech Challenge – Fase 2(executivo).pptx
+
+---
+
+### 14 - Vídeo executivo (até 5 minutos)
+
+Link do vídeo executivo (5 min): https://www.loom.com/share/318459135a80483b8daa9a74f95ff186
+
+---
+
+### 15 - Conclusão
 
 A solução implementa uma arquitetura moderna de dados em Azure baseada no padrão Medalhão, integrando dados educacionais e territoriais por meio de pipelines Batch e Streaming.
 
 O projeto entrega uma base analítica confiável para acompanhamento das metas de alfabetização no Brasil, incorporando práticas de governança, qualidade de dados, monitoramento e otimização de custos.
 
 ---
-
-### 14 - Conclusão
